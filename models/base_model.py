@@ -2,6 +2,7 @@
 """This contains the base model for the AirBnB Clone Project"""
 from datetime import datetime
 from uuid import uuid4
+from . import storage
 
 
 class BaseModel:
@@ -18,30 +19,30 @@ class BaseModel:
                 And it is updated everytime an object is changed.
             kwargs (dict): Keyword attributes.
         """
-        self.id = str(uuid4())
-        self.created_at = datetime.now()
-        self.updated_at = datetime.now()
-        if bool(kwargs):
+        if not bool(kwargs):
+            self.id = str(uuid4())
+            self.created_at = datetime.now()
+            self.updated_at = datetime.now()
+            storage.new(self)
+        else:
             for key, value in kwargs.items():
                 if key == '__class__':
                     continue
-                if (key == 'created_at' or
+                elif (key == 'created_at' or
                     key == 'updated_at' and
                     isinstance(value, str)):
                     value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
                 setattr(self, key, value)
-        else:
-            self.id = str(uuid4())
-            self.created_at = datetime.now()
 
     def __str__(self):
         """Returns [<class name>] (<self.id>) <self.__dict__>"""
-        return f"[{BaseModel.__name__}] ({self.id}) {self.__dict__}"
+        return f"[{self.__class__.__name__}] ({self.id}) {self.__dict__}"
 
     def save(self):
         """Updates the public instance attribute 'update_at' with the current
         datetime"""
-        self.updated_at = datetime.now()
+        self.updated_at = datetime.now().isoformat(timespec='microseconds')
+        storage.save()
 
     def to_dict(self):
         """Generates and returns a dictionary representation of an instance
