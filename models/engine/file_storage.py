@@ -25,23 +25,33 @@ class FileStorage:
     def new(self, obj):
         """Sets in __objects the obj with key <obj class name>.id"""
         key = f"{obj.__class__.__name__}.{obj.id}"
-        self.__class__.__objects[key] = obj.to_dict()
+        self.__class__.__objects[key] = obj
 
     def save(self):
         """Serializes __objects to the JSON file (path: __file_path)"""
-        json_string = json.dumps(self.__class__.__objects)
+        # json_string = json.dumps(self.__class__.__objects)
         file_path = self.__class__.__file_path
-        with open(file_path, 'a', encoding='utf-8') as file:
-            json.dump(json_string, file)
+        if os.path.exists(file_path):
+            reload_object = self.reload()
+            for k, v in self.__class__.__objects.items():
+                reload_object[k] = v.to_dict()
+            with open(file_path, 'w', encoding='utf-8') as file:
+                json.dump(reload_object, file)
+        else:
+            with open(file_path, 'w', encoding='utf-8') as file:
+                json.dump({
+                    k: v.to_dict() for k, v in self.__class__.__objects.items()
+                },
+                      file)
 
     def reload(self):
         """Deserializes the JSON file to __objects (only if the JSON file
         exists."""
         if os.path.exists(self.__class__.__file_path):
             with open(self.__class__.__file_path, 'r', encoding='utf-8') as file:
-                json_string = json.load(file)
-                python_object = json.loads(json_string)
-                if isinstance(object, dict):
+                python_object = json.load(file)
+                if isinstance(python_object, dict):
                     self.__class__.__object = python_object
+            return (self.__class__.__object)
         else:
             pass
