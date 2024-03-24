@@ -19,19 +19,20 @@ class BaseModel:
                 And it is updated everytime an object is changed.
             kwargs (dict): Keyword attributes.
         """
-        if len(kwargs) <= 0:
-            self.id = str(uuid4())
-            self.created_at = datetime.now()
-            self.updated_at = datetime.now()
-        else:
+        if len(kwargs) > 0:
             for key, value in kwargs.items():
                 if key == '__class__':
                     continue
-                elif (key == 'created_at' or
-                    key == 'updated_at' and
+                if (key == 'created_at' or key == 'updated_at' and
                     isinstance(value, str)):
-                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
+                    value = datetime.fromisoformat(value)
                 setattr(self, key, value)
+            return
+
+        self.id = str(uuid4())
+        self.created_at = datetime.now()
+        self.updated_at = datetime.now()
+
         storage.new(self)
 
     def __str__(self):
@@ -42,13 +43,19 @@ class BaseModel:
         """Updates the public instance attribute 'update_at' with the current
         datetime"""
         storage.save()
-        self.updated_at = datetime.now().isoformat(timespec='microseconds')
+        self.updated_at = datetime.now()
 
     def to_dict(self):
         """Generates and returns a dictionary representation of an instance
         method"""
-        self.created_at = self.created_at.isoformat(timespec='microseconds')
-        self.updated_at = self.updated_at.isoformat(timespec='microseconds')
-        new_dict = self.__dict__
-        new_dict["__class__"] = self.__class__.__name__
+        new_dict = {}
+        for k, v in self.__dict__.items():
+            if k == 'created_at' or k == 'updated_at':
+                v = v.isoformat(timespec='microseconds')
+            new_dict[k] = v
+        new_dict['__class__'] = self.__class__.__name__
+        # self.created_at = self.created_at.isoformat(timespec='microseconds')
+        # self.updated_at = self.updated_at.isoformat(timespec='microseconds')
+        # new_dict = {**self.__dict__}
+        # new_dict["__class__"] = self.__class__.__name__
         return (new_dict)
