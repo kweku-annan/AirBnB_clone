@@ -20,26 +20,26 @@ class FileStorage:
 
     def all(self):
         """Returns the dictionary __objects"""
-        return (self.__class__.__objects)
+        return (FileStorage.__objects)
 
     def new(self, obj):
         """Sets in __objects the obj with key <obj class name>.id"""
         key = f"{obj.__class__.__name__}.{obj.id}"
-        self.__class__.__objects[key] = obj
+        FileStorage.__objects[key] = obj
 
     def save(self):
         """Serializes __objects to the JSON file (path: __file_path)"""
         file_path = self.__class__.__file_path
         if os.path.exists(file_path):
             reload_object = self.reload()
-            for k, v in self.__class__.__objects.items():
+            for k, v in FileStorage.__objects.items():
                 reload_object[k] = v.to_dict()
             with open(file_path, 'w', encoding='utf-8') as file:
                 json.dump(reload_object, file)
         else:
             with open(file_path, 'w', encoding='utf-8') as file:
                 json.dump({
-                    k: v.to_dict() for k, v in self.__class__.__objects.items()
+                    k: v.to_dict() for k, v in FileStorage.__objects.items()
                 },
                       file)
 
@@ -50,7 +50,7 @@ class FileStorage:
             with open(self.__class__.__file_path, 'r', encoding='utf-8') as file:
                 python_object = json.load(file)
                 if isinstance(python_object, dict):
-                    self.__class__.__object = python_object
-            return (self.__class__.__object)
+                    FileStorage.__object = python_object
+            return (FileStorage.__object)
         else:
             pass
